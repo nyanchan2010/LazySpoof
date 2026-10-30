@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LazySpoof</string>
+    <string name="xposed_description">Spoof device identifiers per app (Miuix rebuild of DeviceSpoofLab)</string>
+</resources>
