@@ -57,6 +57,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card as M3Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar as M3TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -384,6 +385,7 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun M3Screen(forceDark: Boolean, onForceDarkChange: (Boolean) -> Unit) {
         val context = LocalContext.current
