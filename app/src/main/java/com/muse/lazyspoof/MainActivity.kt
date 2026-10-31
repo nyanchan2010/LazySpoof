@@ -46,6 +46,7 @@ import com.muse.lazyspoof.ui.DevicePresets
 import com.muse.lazyspoof.ui.DeviceProfile
 import com.muse.lazyspoof.ui.IdentifierRegistry
 import com.muse.lazyspoof.utils.ConfigManager
+import com.muse.lazyspoof.utils.ConsistencyAudit
 import com.muse.lazyspoof.utils.RootShell
 import com.muse.lazyspoof.utils.ScopeReader
 import com.muse.lazyspoof.utils.XposedServiceBridge
@@ -342,6 +343,7 @@ class MainActivity : ComponentActivity() {
     private fun Screen(forceDark: Boolean, onForceDarkChange: (Boolean) -> Unit) {
         val context = LocalContext.current
         var refreshKey by remember { mutableStateOf(0) }
+        var auditKey by remember { mutableStateOf(0) }
         var showPresets by remember { mutableStateOf(false) }
         var showDeviceEdit by remember { mutableStateOf(false) }
         var showVersions by remember { mutableStateOf(false) }
@@ -403,7 +405,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix3") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix4") }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -465,6 +467,55 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 )
+                            }
+                        }
+                    }
+                }
+                item(key = "audit_title") { SmallTitle(text = "CONSISTENCY AUDIT") }
+                item(key = "audit") {
+                    val audit = remember(auditKey) { ConsistencyAudit.run() }
+                    val fails = audit.count { it.level == ConsistencyAudit.Level.FAIL }
+                    val warns = audit.count { it.level == ConsistencyAudit.Level.WARN }
+                    val passes = audit.count { it.level == ConsistencyAudit.Level.PASS }
+                    val statusColor = when {
+                        fails > 0 -> Color.Red
+                        warns > 0 -> Color(0xFFCC8800)
+                        else -> Color(0xFF2E9E5B)
+                    }
+                    val statusText = when {
+                        fails > 0 -> "⚠ " + fails + " مشكلة لازم تتصلح"
+                        warns > 0 -> "متسقة أساساً — " + warns + " ملاحظات"
+                        else -> "الهوية متسقة ✅"
+                    }
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = statusText, fontSize = 15.sp, color = statusColor)
+                                Text(text = passes.toString() + " فحص ناجح • " + warns + " تحذير • " + fails + " خطأ", fontSize = 12.sp, color = Color.Gray)
+                            }
+                            TextButton(
+                                text = "إعادة الفحص",
+                                onClick = { auditKey++ }
+                            )
+                        }
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                            Text(
+                                text = "يفحص الشخصية المحفوظة اللي الموديول هيقدمها للتطبيقات — مش قراءة حية من جوه تطبيق scoped.",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        audit.filter { it.level != ConsistencyAudit.Level.PASS }.forEach { check ->
+                            SubtleDivider()
+                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                Text(
+                                    text = (if (check.level == ConsistencyAudit.Level.FAIL) "✕ " else "⚠ ") + check.title,
+                                    fontSize = 14.sp,
+                                    color = if (check.level == ConsistencyAudit.Level.FAIL) Color.Red else Color(0xFFCC8800)
+                                )
+                                Text(text = check.detail, fontSize = 12.sp, color = Color.Gray)
                             }
                         }
                     }
