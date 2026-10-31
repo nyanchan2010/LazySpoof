@@ -18,8 +18,8 @@ android {
         applicationId = "com.muse.lazyspoof"
         minSdk = 26
         targetSdk = 34
-        versionCode = 34
-        versionName = "2.0-miuix15"
+        versionCode = 35
+        versionName = "2.0-m3ex1"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
@@ -92,8 +92,7 @@ dependencies {
     compileOnly("de.robv.android.xposed:api:82")
     compileOnly(files("libs/libxposed-api-stub.jar"))
     implementation("io.github.libxposed:service:101.0.0")
-    implementation("top.yukonga.miuix.kmp:miuix:0.4.2")
-    implementation("androidx.compose.material3:material3:1.5.0-alpha23")
+        implementation("androidx.compose.material3:material3:1.4.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.10.0")
     implementation("androidx.compose.foundation:foundation:1.9.0")
