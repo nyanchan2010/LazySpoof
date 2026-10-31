@@ -370,7 +370,8 @@ class MainActivity : ComponentActivity() {
                 val d = "Root: " + (if (ScopeReader.lastRootOk) "yes" else "no") +
                     "  •  Daemon scope: " + ScopeReader.lastDaemonScopeRows +
                     "  •  DB rows: " + ScopeReader.lastDbScopeRows +
-                    "  •  Seen: " + ScopeReader.lastSeenCount
+                    "  •  Seen: " + ScopeReader.lastSeenCount +
+                    (if (ScopeReader.lastHiddenStale > 0) "  •  Hidden stale: " + ScopeReader.lastHiddenStale else "")
                 runOnUiThread {
                     scopedApps = apps
                     diag = d
@@ -405,7 +406,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix5") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix6") }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -483,9 +484,9 @@ class MainActivity : ComponentActivity() {
                         else -> Color(0xFF2E9E5B)
                     }
                     val statusText = when {
-                        fails > 0 -> "⚠ " + fails + " مشكلة لازم تتصلح"
-                        warns > 0 -> "متسقة أساساً — " + warns + " ملاحظات"
-                        else -> "الهوية متسقة ✅"
+                        fails > 0 -> "⚠ " + fails + " issues to fix"
+                        warns > 0 -> "Mostly consistent — " + warns + " notes"
+                        else -> "Identity consistent ✅"
                     }
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -493,16 +494,16 @@ class MainActivity : ComponentActivity() {
                         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = statusText, fontSize = 15.sp, color = statusColor)
-                                Text(text = passes.toString() + " فحص ناجح • " + warns + " تحذير • " + fails + " خطأ", fontSize = 12.sp, color = Color.Gray)
+                                Text(text = passes.toString() + " checks passed • " + warns + " warnings • " + fails + " failures", fontSize = 12.sp, color = Color.Gray)
                             }
                             TextButton(
-                                text = "إعادة الفحص",
+                                text = "Re-check",
                                 onClick = { auditKey++ }
                             )
                         }
                         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                             Text(
-                                text = "يفحص الشخصية المحفوظة اللي الموديول هيقدمها للتطبيقات — مش قراءة حية من جوه تطبيق scoped.",
+                                text = "Checks the saved persona the module will serve to apps — not a live read from inside a scoped app.",
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )

@@ -58,6 +58,8 @@ public final class ScopeReader {
     /** Scope entries from the daemon itself (IXposedService.getScope). */
     public static volatile int lastDaemonScopeRows = 0;
     public static volatile int lastSeenCount = 0;
+    /** Unresolvable scope entries hidden as stale (uninstalled apps). */
+    public static volatile int lastHiddenStale = 0;
 
     /** Exact daemon DB paths, tried first (classic + Vector fork agree). */
     private static final String[] DB_FILES = {
@@ -97,6 +99,7 @@ public final class ScopeReader {
         lastDbScopeRows = 0;
         lastDaemonScopeRows = 0;
         lastSeenCount = 0;
+        lastHiddenStale = 0;
         LinkedHashMap<String, Boolean> found = new LinkedHashMap<>();
         java.util.HashSet<String> dbSourced = new java.util.HashSet<>();
         // 0. Daemon scope via the service binder — NO root needed, NO
@@ -146,14 +149,17 @@ public final class ScopeReader {
                 }
                 byLabel.put(label + "\n" + pkg, new ScopedApp(pkg, label, icon));
             } catch (PackageManager.NameNotFoundException ignored) {
-                // A DB scope entry that PackageManager cannot resolve for
-                // this user (e.g. the "android" framework pseudo-package, or
-                // an app installed under another user) is still shown, with
-                // its package name as the label, so scope is never silently
-                // invisible again. Seen/CLI entries stay filtered: those
-                // must be real installed apps, or they are stale.
-                if (dbSourced.contains(pkg)) {
+                // Unresolvable scope entries are stale rows in most cases:
+                // an app the user uninstalled stays in the daemon DB, and
+                // showing it makes a ghost row (no icon, and Reset & launch
+                // can never work — the app is gone for this user). Drop
+                // those, but keep dot-less pseudo-packages: "android" is a
+                // real LSPosed scope target even though PM cannot resolve
+                // it as an app.
+                if (dbSourced.contains(pkg) && !pkg.contains(".")) {
                     byLabel.put(pkg + "\n" + pkg, new ScopedApp(pkg, pkg, null));
+                } else {
+                    lastHiddenStale++;
                 }
             }
         }
