@@ -405,7 +405,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix4") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix5") }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

@@ -122,21 +122,26 @@ public final class ConsistencyAudit {
         }
         // brand/product/device:version-release/id/incremental:type/tags
         // e.g. google/panther/panther:13/TQ3A.230805.001/10316578:user/release-keys
+        // NOTE: there are TWO colons — one after device, one between
+        // incremental and type. Splitting only on "/" leaves "10316578:user"
+        // as one segment; it must be split on ":" too.
         try {
             int colon = fp.indexOf(':');
             if (colon < 0) throw new IllegalArgumentException();
             String[] left = fp.substring(0, colon).split("/");
             String[] right = fp.substring(colon + 1).split("/");
             if (left.length != 3 || right.length < 4) throw new IllegalArgumentException();
+            String[] incType = right[2].split(":");
+            if (incType.length != 2) throw new IllegalArgumentException();
             List<String> bad = new ArrayList<>();
             cmp(bad, "brand", left[0], ConfigManager.getBuildBrand());
             cmp(bad, "product", left[1], ConfigManager.getBuildProduct());
             cmp(bad, "device", left[2], ConfigManager.getBuildDevice());
             cmp(bad, "version", right[0], ConfigManager.getBuildVersionRelease());
             cmp(bad, "build id", right[1], ConfigManager.getBuildId());
-            cmp(bad, "incremental", right[2], ConfigManager.getBuildVersionIncremental());
-            cmp(bad, "build type", right[3], ConfigManager.getBuildType());
-            if (right.length > 4) cmp(bad, "build tags", right[4], ConfigManager.getBuildTags());
+            cmp(bad, "incremental", incType[0], ConfigManager.getBuildVersionIncremental());
+            cmp(bad, "build type", incType[1], ConfigManager.getBuildType());
+            cmp(bad, "build tags", right[3], ConfigManager.getBuildTags());
             if (bad.isEmpty()) {
                 out.add(new Check(Level.PASS, "Fingerprint",
                         "Fingerprint matches brand, product, device, version and build fields."));
