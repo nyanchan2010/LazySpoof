@@ -16,6 +16,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -454,7 +455,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix8") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix9") }
         ) { innerPadding ->
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -1122,7 +1123,7 @@ class MainActivity : ComponentActivity() {
 
         M3Scaffold(
             topBar = {
-                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix8") })
+                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix9") })
             }
         ) { innerPadding ->
             Box(
