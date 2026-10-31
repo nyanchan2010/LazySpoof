@@ -24,6 +24,15 @@ jobs:
             "platforms;android-36" "build-tools;36.0.0" \
             "ndk;30.0.16248370" "cmake;3.22.1"
 
+      # The git-tree push helper stores every file with mode 100644, so
+      # gradlew loses its executable bit in the repo and ./gradlew fails
+      # with exit code 126. Restore it here instead of relying on git mode.
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - name: Build release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
