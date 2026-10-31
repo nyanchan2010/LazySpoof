@@ -455,7 +455,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix13") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix14") }
         ) { innerPadding ->
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -1123,7 +1123,7 @@ class MainActivity : ComponentActivity() {
 
         M3Scaffold(
             topBar = {
-                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix13") })
+                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix14") })
             }
         ) { innerPadding ->
             Box(
