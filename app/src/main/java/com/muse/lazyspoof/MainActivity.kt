@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -342,6 +343,9 @@ class MainActivity : ComponentActivity() {
         var showPresets by remember { mutableStateOf(false) }
         var showDeviceEdit by remember { mutableStateOf(false) }
         var showVersions by remember { mutableStateOf(false) }
+        var showLocale by remember { mutableStateOf(false) }
+        var showFlags by remember { mutableStateOf(false) }
+        var showAdvanced by remember { mutableStateOf(false) }
         var scopedApps by remember { mutableStateOf<List<ScopeReader.ScopedApp>>(emptyList()) }
         var diag by remember { mutableStateOf("Tap Refresh to load scoped apps") }
         var workingPkg by remember { mutableStateOf<String?>(null) }
@@ -382,10 +386,11 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix1") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix2") }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding() + 8.dp,
                     bottom = innerPadding.calculateBottomPadding() + 24.dp
@@ -403,7 +408,7 @@ class MainActivity : ComponentActivity() {
                             onClick = {}
                         )
                         SubtleDivider()
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(
                                 text = "Preset",
                                 onClick = { showPresets = !showPresets },
@@ -474,7 +479,7 @@ class MainActivity : ComponentActivity() {
                             Field("Incremental", editIncremental) { editIncremental = it }
                             Field("Security patch", editSecurityPatch) { editSecurityPatch = it }
                             Field("Fingerprint", editFingerprint) { editFingerprint = it }
-                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextButton(
                                     text = "Save",
                                     onClick = {
@@ -532,12 +537,17 @@ class MainActivity : ComponentActivity() {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(
                                 text = "Randomize all",
                                 onClick = {
                                     randomizeAll()
-                                    schedulePersist()
+                                    persistExecutor.execute {
+                                        persistNow()
+                                        runOnUiThread {
+                                            Toast.makeText(this@MainActivity, "Randomized & saved", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
                                     refreshKey++
                                 },
                                 modifier = Modifier.weight(1f)
@@ -579,7 +589,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     if (editingId == def.id) {
                                         Field("New value", editingText) { editingText = it }
-                                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                             TextButton(
                                                 text = "Save",
                                                 onClick = {
@@ -601,7 +611,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     } else {
-                                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                             TextButton(
                                                 text = "Copy",
                                                 onClick = { copyText(value, def.displayName) },
@@ -631,14 +641,24 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                item(key = "locale_title") { SmallTitle(text = "TIMEZONE & LANGUAGE") }
-                item(key = "locale") {
+                item(key = "locale_header") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        BasicComponent(
+                            title = if (showLocale) "▾ Timezone & language" else "▸ Timezone & language",
+                            summary = if (tzText.isBlank() && localeText.isBlank()) "Tap to expand" else (tzText + " • " + localeText),
+                            onClick = { showLocale = !showLocale }
+                        )
+                    }
+                }
+                if (showLocale) item(key = "locale") {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Field("Timezone (e.g. Africa/Cairo)", tzText) { tzText = it }
                         Field("Locale tag (e.g. en-US)", localeText) { localeText = it }
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(
                                 text = "Apply",
                                 onClick = {
@@ -662,8 +682,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                item(key = "flags_title") { SmallTitle(text = "HOOK FLAGS") }
-                item(key = "flags") {
+                item(key = "flags_header") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        BasicComponent(
+                            title = if (showFlags) "▾ Hook flags" else "▸ Hook flags",
+                            summary = "Tap to expand",
+                            onClick = { showFlags = !showFlags }
+                        )
+                    }
+                }
+                if (showFlags) item(key = "flags") {
                     val displaySpoof = remember(refreshKey) { ConfigManager.isDisplaySpoofEnabled() }
                     val nativeProps = remember(refreshKey) { ConfigManager.isNativePropsEnabled() }
                     val hideAccounts = remember(refreshKey) { ConfigManager.isHideAccountsEnabled() }
@@ -713,7 +743,7 @@ class MainActivity : ComponentActivity() {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(
                                 text = "Refresh",
                                 onClick = {
@@ -746,7 +776,7 @@ class MainActivity : ComponentActivity() {
                         }
                         scopedApps.forEachIndexed { idx, app ->
                             if (idx > 0) SubtleDivider()
-                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 val icon = app.icon
                                 if (icon != null) {
                                     AndroidView(
@@ -776,8 +806,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                item(key = "advanced_title") { SmallTitle(text = "ADVANCED") }
-                item(key = "advanced") {
+                item(key = "advanced_header") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        BasicComponent(
+                            title = if (showAdvanced) "▾ Advanced" else "▸ Advanced",
+                            summary = "Tap to expand",
+                            onClick = { showAdvanced = !showAdvanced }
+                        )
+                    }
+                }
+                if (showAdvanced) item(key = "advanced") {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {

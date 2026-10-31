@@ -1,4 +1,4 @@
-# LazySpoof 2.0 (Miuix rebuild)
+# LazySpoof 2.0-miuix2 (Miuix rebuild)
 
 Fork of `yubunus/DeviceSpoofLab-Hooks` (upstream v1.3), rebuilt from
 scratch with a Miuix 0.4.2 (Compose) UI. The hook engine — Java hooks
@@ -19,7 +19,7 @@ lazy1–lazy7 fixes:
 
 Push to `main` and GitHub Actions builds the release APK
 (debug-signed, installs over v1.4-lazy7). Download it from the
-Actions run's artifacts: **LazySpoof-v2.0-miuix1**.
+Actions run's artifacts: **LazySpoof-v2.0-miuix2**.
 
 Enable in LSPosed, reboot, scope your apps, then use Reset & launch
 from the Scoped apps card.

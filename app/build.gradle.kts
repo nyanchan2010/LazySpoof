@@ -15,8 +15,8 @@ android {
         applicationId = "com.muse.lazyspoof"
         minSdk = 26
         targetSdk = 34
-        versionCode = 20
-        versionName = "2.0-miuix1"
+        versionCode = 21
+        versionName = "2.0-miuix2"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
