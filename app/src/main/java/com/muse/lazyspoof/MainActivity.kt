@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -347,7 +349,7 @@ class MainActivity : ComponentActivity() {
         var showFlags by remember { mutableStateOf(false) }
         var showAdvanced by remember { mutableStateOf(false) }
         var scopedApps by remember { mutableStateOf<List<ScopeReader.ScopedApp>>(emptyList()) }
-        var diag by remember { mutableStateOf("Tap Refresh to load scoped apps") }
+        var diag by remember { mutableStateOf("Loading scoped apps…") }
         var workingPkg by remember { mutableStateOf<String?>(null) }
         var editingId by remember { mutableStateOf<String?>(null) }
         var editingText by remember { mutableStateOf("") }
@@ -359,6 +361,21 @@ class MainActivity : ComponentActivity() {
                 Triple(d, ConfigManager.getIdentifierValue(d.id) ?: "", ConfigManager.isIdentifierEnabled(d.id))
             }
         }
+
+        fun refreshScoped() {
+            scopeExecutor.execute {
+                val apps = ScopeReader.load(this@MainActivity)
+                val d = "Root: " + (if (ScopeReader.lastRootOk) "yes" else "no") +
+                    "  •  Daemon scope: " + ScopeReader.lastDaemonScopeRows +
+                    "  •  DB rows: " + ScopeReader.lastDbScopeRows +
+                    "  •  Seen: " + ScopeReader.lastSeenCount
+                runOnUiThread {
+                    scopedApps = apps
+                    diag = d
+                }
+            }
+        }
+        LaunchedEffect(Unit) { refreshScoped() }
 
         // Device-edit fields, seeded when the section opens.
         var editBrand by remember { mutableStateOf("") }
@@ -386,7 +403,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix2") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix3") }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -396,6 +413,62 @@ class MainActivity : ComponentActivity() {
                     bottom = innerPadding.calculateBottomPadding() + 24.dp
                 )
             ) {
+                item(key = "scope_title") { SmallTitle(text = "SCOPED APPS") }
+                item(key = "scope") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                text = "Refresh",
+                                onClick = { refreshScoped() },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                            Text(text = diag, fontSize = 12.sp, color = Color.Gray)
+                        }
+                        if (scopedApps.isEmpty()) {
+                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                Text(
+                                    text = "No scoped apps found. Scope apps in LSPosed, then Refresh.",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                        scopedApps.forEachIndexed { idx, app ->
+                            if (idx > 0) SubtleDivider()
+                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                val icon = app.icon
+                                if (icon != null) {
+                                    AndroidView(
+                                        factory = { ctx ->
+                                            ImageView(ctx).apply {
+                                                setImageDrawable(icon)
+                                            }
+                                        },
+                                        modifier = Modifier.size(48.dp).padding(end = 8.dp)
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = app.label, fontSize = 14.sp)
+                                    Text(text = app.packageName, fontSize = 12.sp, color = Color.Gray)
+                                }
+                                TextButton(
+                                    text = if (workingPkg == app.packageName) "Working…" else "Reset & launch",
+                                    onClick = {
+                                        if (workingPkg != null) return@TextButton
+                                        quickResetApp(app) { working ->
+                                            workingPkg = if (working) app.packageName else null
+                                            if (!working) refreshKey++
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
                 item(key = "device_title") { SmallTitle(text = "DEVICE") }
                 item(key = "device") {
                     Card(
@@ -736,74 +809,6 @@ class MainActivity : ComponentActivity() {
                                 applyProperties(mapOf("debug.verbose" to if (it) "1" else "0"))
                             }
                         )
-                    }
-                }
-                item(key = "scope_title") { SmallTitle(text = "SCOPED APPS") }
-                item(key = "scope") {
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(
-                                text = "Refresh",
-                                onClick = {
-                                    scopeExecutor.execute {
-                                        val apps = ScopeReader.load(this@MainActivity)
-                                        val d = "Root: " + (if (ScopeReader.lastRootOk) "yes" else "no") +
-                                            "  •  Daemon scope: " + ScopeReader.lastDaemonScopeRows +
-                                            "  •  DB rows: " + ScopeReader.lastDbScopeRows +
-                                            "  •  Seen: " + ScopeReader.lastSeenCount
-                                        runOnUiThread {
-                                            scopedApps = apps
-                                            diag = d
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                            Text(text = diag, fontSize = 12.sp, color = Color.Gray)
-                        }
-                        if (scopedApps.isEmpty()) {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                Text(
-                                    text = "No scoped apps found. Scope apps in LSPosed, then Refresh.",
-                                    fontSize = 13.sp,
-                                    color = Color.Gray
-                                )
-                            }
-                        }
-                        scopedApps.forEachIndexed { idx, app ->
-                            if (idx > 0) SubtleDivider()
-                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                val icon = app.icon
-                                if (icon != null) {
-                                    AndroidView(
-                                        factory = { ctx ->
-                                            ImageView(ctx).apply {
-                                                setImageDrawable(icon)
-                                            }
-                                        },
-                                        modifier = Modifier.padding(top = 8.dp, end = 8.dp)
-                                    )
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = app.label, fontSize = 14.sp)
-                                    Text(text = app.packageName, fontSize = 12.sp, color = Color.Gray)
-                                }
-                                TextButton(
-                                    text = if (workingPkg == app.packageName) "Working…" else "Reset & launch",
-                                    onClick = {
-                                        if (workingPkg != null) return@TextButton
-                                        quickResetApp(app) { working ->
-                                            workingPkg = if (working) app.packageName else null
-                                            if (!working) refreshKey++
-                                        }
-                                    }
-                                )
-                            }
-                        }
                     }
                 }
                 item(key = "advanced_header") {
