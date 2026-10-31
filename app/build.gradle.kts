@@ -2,7 +2,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    // kotlin.android NOT applied: AGP 9 built-in Kotlin already registers
+    // the 'kotlin' extension. The Compose compiler plugin stays, wired to
+    // buildFeatures.compose below.
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -15,8 +17,8 @@ android {
         applicationId = "com.muse.lazyspoof"
         minSdk = 26
         targetSdk = 34
-        versionCode = 31
-        versionName = "2.0-miuix12"
+        versionCode = 32
+        versionName = "2.0-miuix13"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
