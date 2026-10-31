@@ -8,15 +8,15 @@ plugins {
 
 android {
     namespace = "com.muse.lazyspoof"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "30.0.16248370"
 
     defaultConfig {
         applicationId = "com.muse.lazyspoof"
         minSdk = 26
         targetSdk = 34
-        versionCode = 29
-        versionName = "2.0-miuix10"
+        versionCode = 30
+        versionName = "2.0-miuix11"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
