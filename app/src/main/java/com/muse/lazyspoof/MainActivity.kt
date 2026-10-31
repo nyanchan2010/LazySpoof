@@ -81,10 +81,7 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold as M3Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text as M3Text
 import androidx.compose.material3.darkColorScheme as m3DarkColorScheme
@@ -457,7 +454,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Scaffold(
-            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix7") }
+            topBar = { TopAppBar(title = "LazySpoof 2.0-miuix8") }
         ) { innerPadding ->
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -1125,7 +1122,7 @@ class MainActivity : ComponentActivity() {
 
         M3Scaffold(
             topBar = {
-                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix7") })
+                M3TopAppBar(title = { M3Text("LazySpoof 2.0-miuix8") })
             }
         ) { innerPadding ->
             Box(
@@ -1141,19 +1138,50 @@ class MainActivity : ComponentActivity() {
                         M3SectionCard {
                             M3Text("Theme", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(12.dp))
-                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                                SegmentedButton(
-                                    selected = theme != "m3e",
-                                    onClick = { onThemeChange("miuix") },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                                    label = { M3Text("Miuix") }
-                                )
-                                SegmentedButton(
-                                    selected = theme == "m3e",
-                                    onClick = { onThemeChange("m3e") },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                                    label = { M3Text("M3 Expressive") }
-                                )
+                            ButtonGroup(
+                                overflowIndicator = {},
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val miuixInteraction = remember { MutableInteractionSource() }
+                                val m3Interaction = remember { MutableInteractionSource() }
+                                if (theme != "m3e") {
+                                    Button(
+                                        onClick = { onThemeChange("miuix") },
+                                        modifier = Modifier.animateWidth(miuixInteraction),
+                                        interactionSource = miuixInteraction,
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                                    ) {
+                                        M3Text("Miuix")
+                                    }
+                                } else {
+                                    OutlinedButton(
+                                        onClick = { onThemeChange("miuix") },
+                                        modifier = Modifier.animateWidth(miuixInteraction),
+                                        interactionSource = miuixInteraction,
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                                    ) {
+                                        M3Text("Miuix")
+                                    }
+                                }
+                                if (theme == "m3e") {
+                                    Button(
+                                        onClick = { onThemeChange("m3e") },
+                                        modifier = Modifier.animateWidth(m3Interaction),
+                                        interactionSource = m3Interaction,
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                                    ) {
+                                        M3Text("M3 Expressive")
+                                    }
+                                } else {
+                                    OutlinedButton(
+                                        onClick = { onThemeChange("m3e") },
+                                        modifier = Modifier.animateWidth(m3Interaction),
+                                        interactionSource = m3Interaction,
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                                    ) {
+                                        M3Text("M3 Expressive")
+                                    }
+                                }
                             }
                         }
                     }
